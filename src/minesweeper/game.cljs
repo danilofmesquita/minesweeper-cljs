@@ -49,24 +49,24 @@
 (defn- add-neighbors-bombs-count [game]
   (->> (:grid game)
        (mapv #(if (nil? (:bomb? %)) 
-                  (assoc % 
-                         :neighbors-bombs-count 
-                         (count-neighbors-bombs game (:point %)))
-                  %))
+                (assoc % 
+                       :neighbors-bombs-count 
+                       (count-neighbors-bombs game (:point %)))
+                %))
        (assoc game :grid)))
 
 (defn- rand-bomb-spot [game trigger-point]
   (let [index (rand-int (count-cells game))]
     (if (= index (point->index game trigger-point))
-        (recur game trigger-point)
-        index))) 
+      (recur game trigger-point)
+      index))) 
 
 (defn- add-bombs [game trigger-point amount]
   (if (> amount (count-bombs-in (:grid game)))
-      (recur (assoc-in game 
-                       [:grid (rand-bomb-spot game trigger-point) :bomb?] true) 
-              trigger-point 
-              amount)
+    (recur (assoc-in game 
+                     [:grid (rand-bomb-spot game trigger-point) :bomb?] true) 
+           trigger-point 
+           amount)
     game))
 
 (defn bomb? [{:keys [grid] :as game} point]
@@ -89,23 +89,23 @@
         open (atom #{})]
     (letfn 
       [(recur-open-neighbors 
-        [point]
-        (when (and (not (bomb? @game point))
-                   (not (contains? @open (point->index @game point))))
-          (swap! game 
-                 assoc-in [:grid (point->index @game point) :open?] 
-                 true)
-          (swap! open conj (point->index @game point))
-          (when (zero? (bomb-count @game point))
-                (doseq [neighbor (neighbors-of @game point)]
-                (recur-open-neighbors (:point neighbor))))))]
+         [point]
+         (when (and (not (bomb? @game point))
+                    (not (contains? @open (point->index @game point))))
+           (swap! game 
+                  assoc-in [:grid (point->index @game point) :open?] 
+                  true)
+           (swap! open conj (point->index @game point))
+           (when (zero? (bomb-count @game point))
+             (doseq [neighbor (neighbors-of @game point)]
+               (recur-open-neighbors (:point neighbor))))))]
       (recur-open-neighbors point))
     @game))
 
 (defn- explode-if-bomb [game point]
   (if (bomb? game point)
-      (assoc-in game [:grid (point->index game point) :exploded?] true)
-      game))
+    (assoc-in game [:grid (point->index game point) :exploded?] true)
+    game))
 
 (defn open-cell [game point]
   (-> (assoc-in game [:grid (point->index game point) :open?] true)

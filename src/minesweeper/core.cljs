@@ -36,30 +36,30 @@
         (set! (.-innerHTML column) "🚩")
       (and(mnsw/open? game point) (> (mnsw/bomb-count game point) 0))
         (do (set! (.-innerHTML column) (mnsw/bomb-count game point))
-            (.add (.-classList column) 
-                  (str "level-" (mnsw/bomb-count game point)))))
+          (.add (.-classList column) 
+                (str "level-" (mnsw/bomb-count game point)))))
     (when-not (or (mnsw/lost? game) (mnsw/won? game))
       (if (:started? game)
         (do (.addEventListener 
-             column 
-             "click"
-             #(render (mnsw/open-cell game point)))
+              column 
+              "click"
+              #(render (mnsw/open-cell game point)))
             (.addEventListener
-             column
-             "contextmenu"
-             #(do (.preventDefault %)
-                  (render (mnsw/flag-cell game point))
-                  false)))
+              column
+              "contextmenu"
+              #(do (.preventDefault %)
+                   (render (mnsw/flag-cell game point))
+                   false)))
         (.addEventListener column 
                            "click"
                            #(render (mnsw/start-game game point)))))
-  (.appendChild row column)))
+    (.appendChild row column)))
 
 (defn status [game]
   (cond (mnsw/lost? game) "😵"
         (mnsw/won? game)  "😎"
         :else             "😀"))
-    
+
 (defn append-status [game node]
   (let [indicator (.createElement js/document "div")]
     (.add (.-classList indicator) "indicator")
@@ -77,16 +77,16 @@
             :let [row (.createElement js/document "div")]]
       (doseq [j (range (* i width) (+ (* i width) width))]
         (append-cell game i j row width))
-    (.add (.-classList row) "row")
-    (.appendChild node row))))
+      (.add (.-classList row) "row")
+      (.appendChild node row))))
 
 (defn append-timer [{:keys [started?]} node]
   (js/clearInterval @polling-id)
   (when started? 
     (set! (.-innerHTML node) @timer)
     (reset! polling-id (js/setInterval 
-                        #(set! (.-innerHTML node) @timer)
-                        300))))
+                         #(set! (.-innerHTML node) @timer)
+                         300))))
 
 (defn append-used-flags [game node]
   (set! (.-innerHTML node) (mnsw/count-used-flags game)))
