@@ -84,21 +84,15 @@
 (defn bomb-count [{:keys [grid] :as game} point]
   (:neighbors-bombs-count (grid (point->index game point))))
 
-(defn- open-neighbors [game point]
-  (let [game (transient game)
-        open (transient #{})]
-    (letfn 
-      [(thisfn 
-         [point]
-         (when (and (not (bomb? game point))
-                    (not (contains? open (point->index game point))))
-           (assoc! game :grid (assoc-in (:grid game) [(point->index game point) :open?] true)) 
-           (conj! open (point->index game point))
-           (when (zero? (bomb-count game point))
-             (doseq [neighbor (neighbors-of game point)]
-               (thisfn (:point neighbor))))))]
-      (thisfn point))
-    (persistent! game)))
+(defn open-neighbors [game point]
+  (if (bomb? game point)
+    game
+    (let [game (assoc-in game [:grid (point->index game point) :open?] true)]
+      (if (zero? (bomb-count game point))
+        (->> (neighbors-of game point)
+             (filter #(not (:open? %)))
+             (reduce #(open-neighbors %1 (:point %2)) game))
+        game))))
 
 (defn- explode-if-bomb [game point]
   (if (bomb? game point)
