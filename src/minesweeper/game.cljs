@@ -85,32 +85,41 @@
   (:neighbors-bombs-count (grid (point->index game point))))
 
 (defn- open-neighbors [game point]
-  (let [game (atom game)
-        open (atom #{})]
+  (let [game (transient game)
+        open (transient #{})]
     (letfn 
-      [(recur-open-neighbors 
+      [(thisfn 
          [point]
-         (when (and (not (bomb? @game point))
-                    (not (contains? @open (point->index @game point))))
-           (swap! game 
-                  assoc-in [:grid (point->index @game point) :open?] 
-                  true)
-           (swap! open conj (point->index @game point))
-           (when (zero? (bomb-count @game point))
-             (doseq [neighbor (neighbors-of @game point)]
-               (recur-open-neighbors (:point neighbor))))))]
-      (recur-open-neighbors point))
-    @game))
+         (when (and (not (bomb? game point))
+                    (not (contains? open (point->index game point))))
+           (assoc! game :grid (assoc-in (:grid game) [(point->index game point) :open?] true)) 
+           (conj! open (point->index game point))
+           (when (zero? (bomb-count game point))
+             (doseq [neighbor (neighbors-of game point)]
+               (thisfn (:point neighbor))))))]
+      (thisfn point))
+    (persistent! game)))
 
 (defn- explode-if-bomb [game point]
   (if (bomb? game point)
     (assoc-in game [:grid (point->index game point) :exploded?] true)
     game))
 
+(defn- lost? [{:keys [grid]}] (pos? (->> grid (filter #(:exploded? %)) count)))
+
+(defn- won? [{:keys [grid number-of-bombs]}] 
+  (= number-of-bombs (->> grid (filter #(not (:open? %))) count)))
+
+(defn assoc-game-status [game]
+  (-> game
+      (assoc :won? (won? game))
+      (assoc :lost? (lost? game))))
+
 (defn open-cell [game point]
   (-> (assoc-in game [:grid (point->index game point) :open?] true)
       (open-neighbors point)
-      (explode-if-bomb point)))
+      (explode-if-bomb point)
+      (assoc-game-status)))
 
 (defn start-game [game trigger-point]
   (-> (assoc game :started? true)
@@ -125,10 +134,6 @@
               (not (flag? game point)))
     game))
 
-(defn lost? [{:keys [grid]}] (pos? (->> grid (filter #(:exploded? %)) count)))
-
-(defn won? [{:keys [grid number-of-bombs]}] 
-  (= number-of-bombs (->> grid (filter #(not (:open? %))) count)))
 
 (defn count-used-flags [{:keys [number-of-bombs grid]}]
   (- number-of-bombs 

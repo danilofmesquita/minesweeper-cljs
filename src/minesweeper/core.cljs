@@ -1,7 +1,7 @@
 (ns minesweeper.core
   (:require [minesweeper.game :as mnsw]))
 
-(def empty-game (mnsw/create-game 9 9 10))
+(def empty-game (mnsw/create-game 9 9 1))
 (def timer (atom 0))
 (def timer? (atom false))
 (def timer-id (atom 0))
@@ -29,16 +29,16 @@
     (cond 
       (mnsw/exploded? game point) 
         (set! (.-innerHTML column) "💥")
-      (and (mnsw/lost? game) (mnsw/bomb? game point)) 
+      (and (:lost? game) (mnsw/bomb? game point)) 
         (set! (.-innerHTML column) "💣")
       (or (mnsw/flag? game point) 
-          (and (mnsw/won? game) (mnsw/bomb? game point)))
+          (and (:won? game) (mnsw/bomb? game point)))
         (set! (.-innerHTML column) "🚩")
       (and(mnsw/open? game point) (> (mnsw/bomb-count game point) 0))
         (do (set! (.-innerHTML column) (mnsw/bomb-count game point))
           (.add (.-classList column) 
                 (str "level-" (mnsw/bomb-count game point)))))
-    (when-not (or (mnsw/lost? game) (mnsw/won? game))
+    (when-not (or (:lost? game) (:won? game))
       (if (:started? game)
         (do (.addEventListener 
               column 
@@ -56,8 +56,8 @@
     (.appendChild row column)))
 
 (defn status [game]
-  (cond (mnsw/lost? game) "😵"
-        (mnsw/won? game)  "😎"
+  (cond (:lost? game) "😵"
+        (:won? game)  "😎"
         :else             "😀"))
 
 (defn append-status [game node]
@@ -91,7 +91,7 @@
 (defn append-used-flags [game node]
   (set! (.-innerHTML node) (mnsw/count-used-flags game)))
     
-(defn render [{:keys [started?] :as game}]
+(defn render [{:keys [won? lost? started?] :as game}]
   (set! (.-innerHTML (.-body js/document)) "
     <div id=\"game\">
       <div id=\"header\">
@@ -101,7 +101,7 @@
       </div>
       <div id=\"grid\"></div>
     </div>")
-  (if (or (mnsw/won? game) (mnsw/lost? game)) 
+  (if (or won? lost?) 
     (stop-timer) 
     (when started? (start-timer)))
   (append-timer game (.getElementById js/document "timer"))
