@@ -1,8 +1,8 @@
 (defproject minesweeper "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :description "Minesweeper implementation using ClojureScript"
+  :url "https://danilofmesquita.github.io/minesweeper-cljs"
+  :license {:name "MIT License"
+            :url "https://mit-license.org/"}
 
   :min-lein-version "2.9.1"
 
