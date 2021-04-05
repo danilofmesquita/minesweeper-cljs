@@ -1,7 +1,7 @@
 (ns minesweeper.core
   (:require [minesweeper.game :as mnsw]))
 
-(def empty-game (mnsw/create-game 9 9 1))
+(def empty-game (mnsw/create-game 9 9 10))
 (def timer (atom 0))
 (def timer? (atom false))
 (def timer-id (atom 0))
