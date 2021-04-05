@@ -2,6 +2,9 @@
 
 An implementation of minesweeper game in ClojureScript, using leiningen and figwheel.
 
+## Demo
+https://danilofmesquita.github.io/minesweeper-cljs/
+
 ## Setup
 
 To get an interactive development environment run:
