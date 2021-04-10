@@ -114,6 +114,9 @@
 (defn- won? [{:keys [grid number-of-bombs]}]
   (= number-of-bombs (->> grid (filter #(not (:open? %))) count)))
 
+(defn game-ended? [game]
+  (or (won? game) (lost? game)))
+
 (defn assoc-game-status [game]
   (-> game
       (assoc :won? (won? game))
@@ -137,7 +140,6 @@
               [:grid (point->index game point) :flag?]
               (not (flag? game point)))
     game))
-
 
 (defn count-used-flags [{:keys [number-of-bombs grid]}]
   (- number-of-bombs

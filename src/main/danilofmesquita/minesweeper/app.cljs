@@ -19,13 +19,14 @@
   (js/clearInterval @timer-id))
 
 (defn handle-cell-click [point]
-  (if (:started? @game-state)
-    (do
-      (reset! game-state (mnsw/open-cell @game-state point))
-      (when (:lost? @game-state) (stop-timer)))
-    (do
-      (start-timer)
-      (reset! game-state (mnsw/start-game @game-state point)))))
+  (when-not (mnsw/game-ended? @game-state)
+    (if (:started? @game-state)
+      (do
+        (reset! game-state (mnsw/open-cell @game-state point))
+        (when (:lost? @game-state) (stop-timer)))
+      (do
+        (start-timer)
+        (reset! game-state (mnsw/start-game @game-state point))))))
 
 (defn handle-cell-context-menu [event point]
    (when (:started? @game-state)

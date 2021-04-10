@@ -15,7 +15,7 @@
  
  #flag-counter {
     background-color: dimgray;
-    padding: 15px 24px;
+    padding: 8px 14px;
     font-family: monospace;
     font-weight: bold;
     color: #eeeeec;
@@ -23,12 +23,22 @@
  
  #timer {
     background-color: dimgray;
-    padding: 15px 24px;
+    padding: 8px 14px;
     font-family: monospace;
     font-weight: bold;
     color: #eeeeec;
  }
  
+ #indicator {
+    margin: auto;
+    text-align: center;
+    font-size: 28pt;
+ }
+ 
+ #indicator > a:hover {
+    cursor: pointer;
+ }
+
  .row {
     display: table-row;
  }
@@ -56,16 +66,6 @@
     margin: auto;
     border-top: 1px solid grey;
     border-right: 1px solid grey;
- }
- 
- .indicator {
-    margin: auto;
-    text-align: center;
-    font-size: 28pt;
- }
- 
- .indicator > a:hover {
-    cursor: pointer;
  }
  
  body {
