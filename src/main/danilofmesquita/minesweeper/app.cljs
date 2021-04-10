@@ -55,7 +55,7 @@
       (mnsw/bomb-count @game-state point))]))
 
 (defn status []
-  [:div.indicator
+  [:div#indicator
    {:on-click (fn []
                 (stop-timer) 
                 (reset! timer 0)
@@ -67,7 +67,7 @@
             "😎"
             :else "😀")]])
 
-(defn time-indicator []
+(defn timer-indicator []
   [:div#timer @timer])
 
 (defn used-flags []
@@ -88,7 +88,7 @@
    [:div#header
     [used-flags]
     [status]
-    [time-indicator]]
+    [timer-indicator]]
    [grid]])
 
 (defn init []
