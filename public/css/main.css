@@ -64,7 +64,7 @@
     font-size: 28pt;
  }
  
- .indicator > span:hover {
+ .indicator > a:hover {
     cursor: pointer;
  }
  

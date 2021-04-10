@@ -84,6 +84,16 @@
 (defn bomb-count [{:keys [grid] :as game} point]
   (:neighbors-bombs-count (grid (point->index game point))))
 
+(defn show-bomb-count? [game point]
+  (and (open? game point) (> (bomb-count game point) 0)))
+
+(defn show-bomb? [game point]
+  (and (:lost? game) (bomb? game point)))
+
+(defn show-flag? [game point]
+  (or (flag? game point)
+      (and (:won? game) (bomb? game point))))
+
 (defn open-neighbors [game point]
   (if (bomb? game point)
     game
