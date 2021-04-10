@@ -1,114 +1,100 @@
 (ns danilofmesquita.minesweeper.app
- (:require [danilofmesquita.minesweeper.game :as mnsw]))
+ (:require [danilofmesquita.minesweeper.game :as mnsw]
+           [reagent.core :as r]
+           [reagent.dom :as rdom]))
 
-(def timer (atom 0))
-(def timer? (atom false))
-(def timer-id (atom 0))
-(def polling-id (atom 0))
-
-(declare render)
-(declare init)
+(def game-state (r/atom (mnsw/create-game 9 9 10)))
+(def timer (r/atom 0))
+(def timer-id (r/atom 0))
 
 (defn start-timer []
-  (when-not @timer?
-    (js/clearInterval @timer-id)
-    (reset! timer? true)
-    (reset! timer 0)
-    (reset! timer-id (js/setInterval #(swap! timer inc) 1000))))
+  (js/clearInterval @timer-id)
+  (reset! timer 0)
+  (reset! timer-id (js/setInterval #(swap! timer inc) 1000)))
 
 (defn stop-timer []
-  (reset! timer? false)
   (js/clearInterval @timer-id))
 
-(defn append-cell [game i j row width]
-  (let [column (.createElement js/document "div")
-        point (mnsw/new-point i (mod j width)) ]
-    (.add (.-classList column) "column")
-    (when (mnsw/open? game point)
-      (.add (.-classList column) "opened"))
+(defn handle-cell-click [point]
+  (if (:started? @game-state)
+    (do
+      (reset! game-state (mnsw/open-cell @game-state point))
+      (when (:lost? @game-state) (stop-timer)))
+    (do
+      (start-timer)
+      (reset! game-state (mnsw/start-game @game-state point)))))
+
+(defn handle-cell-context-menu [event point]
+   (when (:started? @game-state)
+     (.preventDefault event)
+     (reset! game-state (mnsw/flag-cell @game-state point))
+     false))
+
+(defn cell
+  ([x y]
+   (cell (mnsw/new-point x (mod y (:width @game-state)))))
+  ([point]
+   [:div.column
+    {:class           [             
+                       (when (mnsw/open? @game-state point) "opened")
+                       (when (and (mnsw/open? @game-state point) 
+                                  (> (mnsw/bomb-count @game-state point) 0)) 
+                         (str "level-" (mnsw/bomb-count @game-state point)))
+                       ]
+     :on-click        #(handle-cell-click point)
+     :on-context-menu #(handle-cell-context-menu % point)
+     }
     (cond 
-      (mnsw/exploded? game point) 
-        (set! (.-innerHTML column) "💥")
-      (and (:lost? game) (mnsw/bomb? game point)) 
-        (set! (.-innerHTML column) "💣")
-      (or (mnsw/flag? game point) 
-          (and (:won? game) (mnsw/bomb? game point)))
-        (set! (.-innerHTML column) "🚩")
-      (and(mnsw/open? game point) (> (mnsw/bomb-count game point) 0))
-        (do (set! (.-innerHTML column) (mnsw/bomb-count game point))
-          (.add (.-classList column) 
-                (str "level-" (mnsw/bomb-count game point)))))
-    (when-not (or (:lost? game) (:won? game))
-      (if (:started? game)
-        (do (.addEventListener 
-              column 
-              "click"
-              #(render (mnsw/open-cell game point)))
-            (.addEventListener
-              column
-              "contextmenu"
-              #(do (.preventDefault %)
-                   (render (mnsw/flag-cell game point))
-                   false)))
-        (.addEventListener column 
-                           "click"
-                           #(render (mnsw/start-game game point)))))
-    (.appendChild row column)))
+      (mnsw/exploded? @game-state point) 
+      "💥"
+      (and (:lost? @game-state) (mnsw/bomb? @game-state point)) 
+      "💣"
+      (or (mnsw/flag? @game-state point)
+          (and (:won? @game-state) (mnsw/bomb? @game-state point)))
+      "🚩"
+      (and (mnsw/open? @game-state point)
+           (> (mnsw/bomb-count @game-state point) 0))
+      (mnsw/bomb-count @game-state point)
+      )]
+   ))
 
-(defn status [game]
-  (cond (:lost? game) "😵"
-        (:won? game)  "😎"
-        :else             "😀"))
+(defn status []
+  [:div.indicator
+   {:on-click (fn []
+                (stop-timer) 
+                (reset! timer 0)
+                (reset! game-state (mnsw/create-game 9 9 10)))}
+   [:span (cond
+            (:lost? @game-state)
+            "😵"
+            (:won? @game-state)
+            "😎"
+            :else "😀")]])
 
-(defn append-status [game node]
-  (let [indicator (.createElement js/document "div")]
-    (.add (.-classList indicator) "indicator")
-    (set! (.-innerHTML indicator) (str "<span>" (status game) "</span>"))
-    (.addEventListener indicator 
-                       "click"
-                       #(do (stop-timer) (init)))
-    (.appendChild node indicator)))
+(defn time-indicator []
+  [:div#timer @timer])
 
-(defn append-grid [{:keys [width height] :as game} node]
-  (let [grid (.getElementById js/document "grid")]
-    (set! (.-innerHTML grid) "")
-    (.add (.-classList grid) "grid")
-    (doseq [i (range 0 height)
-            :let [row (.createElement js/document "div")]]
-      (doseq [j (range (* i width) (+ (* i width) width))]
-        (append-cell game i j row width))
-      (.add (.-classList row) "row")
-      (.appendChild node row))))
+(defn used-flags []
+  [:div#flag-counter (mnsw/count-used-flags @game-state)])
 
-(defn append-timer [{:keys [started?]} node]
-  (js/clearInterval @polling-id)
-  (when started? 
-    (set! (.-innerHTML node) @timer)
-    (reset! polling-id (js/setInterval 
-                         #(set! (.-innerHTML node) @timer)
-                         300))))
+(defn row [x]
+  (let [width (:width @game-state)]
+    [:div.row (for [y (range (* x width) (+ (* x width) width))]
+                ^{:key y} [cell x y])]))
+  
+(defn grid []
+  (let [height (:height @game-state)]
+    [:div#grid.grid (for [i (range 0 height)]
+                      ^{:key i} [row i])]))
 
-(defn append-used-flags [game node]
-  (set! (.-innerHTML node) (mnsw/count-used-flags game)))
-    
-(defn render [{:keys [won? lost? started?] :as game}]
-  (set! (.-innerHTML (.getElementById js/document "root")) "
-    <div id=\"game\">
-      <div id=\"header\">
-        <div id=\"flag-counter\">0</div>
-        <div id=\"status\"></div>
-        <div id=\"timer\">0</div>
-      </div>
-      <div id=\"grid\"></div>
-    </div>")
-  (if (or won? lost?) 
-    (stop-timer) 
-    (when started? (start-timer)))
-  (append-timer game (.getElementById js/document "timer"))
-  (append-used-flags game (.getElementById js/document "flag-counter"))
-  (append-status game (.getElementById js/document "status"))
-  (append-grid game (.getElementById js/document "grid")))
+(defn minesweeper []
+  [:div#game
+   [:div#header
+    [used-flags]
+    [status]
+    [time-indicator]]
+   [grid]])
 
 (defn init []
-  (render (mnsw/create-game 9 9 10))
-)
+  (rdom/render [minesweeper]
+               (.getElementById js/document "root")))
