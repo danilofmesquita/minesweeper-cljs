@@ -25,12 +25,11 @@
 (defn handle-cell-click [point]
   (when-not (mnsw/game-ended? @game-state)
     (if (:started? @game-state)
-      (do
-        (reset! game-state (mnsw/open-cell @game-state point))
-        (when (:lost? @game-state) (stop-timer)))
+      (reset! game-state (mnsw/open-cell @game-state point))
       (do
         (start-timer)
-        (reset! game-state (mnsw/start-game @game-state point))))))
+        (reset! game-state (mnsw/start-game @game-state point))))
+    (when (mnsw/game-ended? @game-state) (stop-timer))))
 
 (defn handle-cell-context-menu [event point]
    (when (:started? @game-state)
@@ -94,7 +93,9 @@
             :min 4
             :on-change (fn [event]
                          (reset! g-field (-> event .-target .-value int))
-                         (reset! game-state (empty-game)))}]])
+                         (reset! game-state (empty-game))
+                         (stop-timer)
+                         (reset! timer 0))}]])
 
 (defn minesweeper []
   [:div#wrapper

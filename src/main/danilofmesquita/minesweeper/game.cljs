@@ -115,7 +115,7 @@
   (= number-of-bombs (->> grid (filter #(not (:open? %))) count)))
 
 (defn game-ended? [game]
-  (or (won? game) (lost? game)))
+  (or (:won? game) (:lost? game)))
 
 (defn assoc-game-status [game]
   (-> game
