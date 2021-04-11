@@ -1,0 +1,122 @@
+#game {
+    display: inline-block;
+    padding: 10px;
+    font-size: 1.3em;
+ }
+ 
+ #header {
+    border: 1px solid grey;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-bottom: 0px;
+    padding: 10px;
+ }
+ 
+ #flag-counter {
+    background-color: dimgray;
+    padding: 8px 14px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #eeeeec;
+ }
+ 
+ #timer {
+    background-color: dimgray;
+    padding: 8px 14px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #eeeeec;
+ }
+ 
+ #indicator {
+    margin: auto;
+    text-align: center;
+    font-size: 28pt;
+ }
+ 
+ #indicator > a:hover {
+    cursor: pointer;
+ }
+
+ #form {
+    display: flex;
+    justify-content: center;
+ }
+
+ #form > div {
+    display: flex;
+    flex-direction: column;
+    margin: 0 5px;
+ }
+
+#form > div > label {
+   text-align: left;
+}
+
+ .row {
+    display: table-row;
+ }
+ 
+ .column {
+    border-bottom: 1px solid grey;
+    border-left: 1px solid grey;
+    height: 40px;
+    width: 40px;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    margin: 1px;
+    font-family: Arial, Helvetica, sans-serif;
+    cursor: pointer;
+    display: table-cell;
+ }
+ 
+ .column:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+ }
+ 
+ .grid {
+    display: table;
+    margin: auto;
+    border-top: 1px solid grey;
+    border-right: 1px solid grey;
+ }
+ 
+ body {
+    background-color: #eeeeec;
+    text-align: center;
+    margin: auto;
+ }
+ 
+ .opened {
+    background-color: lightgray;
+ }
+ 
+ .level-0 {
+    color: grey;
+ }
+ 
+ .level-1 {
+    color: blue;
+ }
+ 
+ .level-2 {
+    color: green;
+ }
+ 
+ .level-3 {
+    color: red;
+ }
+ 
+ .level-4 {
+    color: darkblue;
+ }
+ 
+ .level-5 {
+    color: darkgreen;
+ }
+ 
+ .level-6 {
+    color: darkblue;
+ }
