@@ -3,8 +3,12 @@
            [reagent.core :as r]
            [reagent.dom :as rdom]))
 
+(def g-height (r/atom 9))
+(def g-width (r/atom 9))
+(def g-bombs (r/atom 10))
+
 (defn empty-game []
-  (mnsw/create-game 9 9 10))
+  (mnsw/create-game @g-height @g-width @g-bombs))
 
 (def game-state (r/atom (empty-game)))
 (def timer (r/atom 0))
@@ -83,13 +87,27 @@
     [:div#grid.grid (for [i (range 0 height)]
                       ^{:key i} [row i])]))
 
+(defn g-input [label g-field]
+  [:div [:label label]
+   [:input {:default-value @g-field
+            :type 'number
+            :min 4
+            :on-change (fn [event]
+                         (reset! g-field (-> event .-target .-value int))
+                         (reset! game-state (empty-game)))}]])
+
 (defn minesweeper []
-  [:div#game
-   [:div#header
-    [used-flags]
-    [status]
-    [timer-indicator]]
-   [grid]])
+  [:div#wrapper
+   [:div#form
+    [g-input "Height:" g-height]
+    [g-input "Width:" g-width]
+    [g-input "Bombs:" g-bombs]]
+   [:div#game
+    [:div#header
+     [used-flags]
+     [status]
+     [timer-indicator]]
+    [grid]]])
 
 (defn init []
   (rdom/render [minesweeper]
